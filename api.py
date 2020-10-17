@@ -1,4 +1,5 @@
 from datetime import timedelta
+from helper import ParserHelper
 from json import dump
 import flask
 from flask.json import jsonify
@@ -24,46 +25,25 @@ def task1():
     week = request.args.get('week', '')
     sensor_id = request.args.get('sensor_id', '')
 
-    match = re.match(r'[0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}:[0-9]{2} - [0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}:[0-9]{2}', week)
-    assert match!=None
+    parsedWeek = ParserHelper.parseWeek(week=week)
 
-    '''clean input a bit removing whitespace between -'''
-    week = re.sub(r'\s-\s', '-', week)
+    if parsedWeek==None:
+        return 'Error. Week range must be given in the format: \'dd/mm/yyyy hh:mm - dd/mm/yyyy hh:mm\''
 
-    week1 = week.split('-')[0].split(' ')[0]
-    time1 = week.split('-')[0].split(' ')[1]
-    week2 = week.split('-')[1].split(' ')[0]
-    time2 = week.split('-')[1].split(' ')[1]
+    week1, week2, day1, day2 = parsedWeek
 
-
-    # 1,8,15,21 && diff must be 7
-    day1 = int(week1.split('/')[0])
-    day2 = int(week2.split('/')[0])
-
-    week1 = datetime.datetime(year=int(week1.split('/')[-1]), month=int(week1.split('/')[-2]), day=int(week1.split('/')[-3]), hour=int(time1.split(':')[0]), minute=int(time1.split(':')[1]))
-    week2 = datetime.datetime(year=int(week2.split('/')[-1]), month=int(week2.split('/')[-2]), day=int(week2.split('/')[-3]), hour=int(time2.split(':')[0]), minute=int(time2.split(':')[1]))
-    
-    '''
-    we use time delta to easily increment the week
-    '''
+    ''' we use time delta to easily increment the week'''
     week3 = week2 + datetime.timedelta(days=7)
-
-    # print(week1)
-    # print(week2)
 
     '''filter out bad input by making sure that start date is start of week and end date end of week'''
     
-    if day1 in [1, 8, 15, 21] and day2-day1==7: 
-        print('pass')
-    else:
-        print('fail')
+    if (day1 in [1, 8, 15, 21] and day2-day1==7)==False: 
+        return 'Error. day of first week must be a starting week (one of 1, 8, 15, 21)'
 
-    dic={'T':'Temperature', 'P':'Pressure', 'F':'Flow-meter', 'E':'Energyconsumption'}
-    '''map sensorid to get sensor name, alternative was to put it directly in mongodb or query from postgres'''
     
-    sensor_id = sensor_id.replace(sensor_id[0], dic[sensor_id[0]]+' ')
-
-    print(sensor_id)
+    sensor_id = ParserHelper.parseSensor(sensor_id=sensor_id)
+    if sensor_id==None:
+        return 'Error. sensor_id not valid'
 
     pipeline = [
         
@@ -82,43 +62,32 @@ def task1():
     week_i_avg = db.sensors.aggregate(pipeline=pipeline)
     week_i1_avg = db.sensors.aggregate(pipeline=pipeline1)
 
+    if list(week_i_avg)[0]['average']==None or list(week_i1_avg)[0]['average']==None:
+        return 'Error. No entries found for the week and sensor_id'
 
     avg_diff = list(week_i1_avg)[0]['average'] - list(week_i_avg)[0]['average']
 
-    # res = jsonify(list(week_i_avg)[0])
-    # print(res)
-  
     return {'moving average difference':avg_diff}
  
 @app.route('/task2/', methods=['GET'])
 def task2():
     
-    client = pymongo.MongoClient(f'mongodb+srv://root:{PASSWORD}@cluster0.ursc6.mongodb.net/<dbname>?retryWrites=true&w=majority')
+    client = pymongo.MongoClient(f'mongodb+srv://root:{PASSWORD}@cluster0.ursc6.mongodb.net/{DBNAME}?retryWrites=true&w=majority')
     db = client.challenge
     
     week = request.args.get('week', '')
     sensor_id = request.args.get('sensor_id', '')
 
-    match = re.match(r'[0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}:[0-9]{2} - [0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}:[0-9]{2}', week)
-    assert match!=None
+    parsedWeek = ParserHelper.parseWeek(week=week)
+    if parsedWeek==None:
+        return 'Error. Week range must be given in the format: \'dd/mm/yyyy hh:mm - dd/mm/yyyy hh:mm\''
+    week1, week2, _, _ = parsedWeek
 
-    '''clean input a bit removing whitespace between -'''
-    week = re.sub(r'\s-\s', '-', week)
+    sensor_id = ParserHelper.parseSensor(sensor_id=sensor_id)
+    if sensor_id==None:
+        return 'Error. sensor_id not valid'
 
-    week1 = week.split('-')[0].split(' ')[0]
-    time1 = week.split('-')[0].split(' ')[1]
-    week2 = week.split('-')[1].split(' ')[0]
-    time2 = week.split('-')[1].split(' ')[1]
 
-    week1 = datetime.datetime(year=int(week1.split('/')[-1]), month=int(week1.split('/')[-2]), day=int(week1.split('/')[-3]), hour=int(time1.split(':')[0]), minute=int(time1.split(':')[1]))
-    week2 = datetime.datetime(year=int(week2.split('/')[-1]), month=int(week2.split('/')[-2]), day=int(week2.split('/')[-3]), hour=int(time2.split(':')[0]), minute=int(time2.split(':')[1]))
-
-    print(abs((week1-week2).days))
-
-    dic={'T':'Temperature', 'P':'Pressure', 'F':'Flow-meter', 'E':'Energyconsumption'}
-    '''map sensorid to get sensor name, alternative was to put it directly in mongodb or query from postgres'''
-    
-    sensor_id = sensor_id.replace(sensor_id[0], dic[sensor_id[0]]+' ')
 
     pipeline = [
         
@@ -129,13 +98,14 @@ def task2():
 
     res = db.sensors.aggregate(pipeline=pipeline)
     
+    if (list(res)[0]['average']) == None:
+        return 'Error. No entries found for the week and sensor_id'
+
     return {'moving average':list(res)[0]['average']}
 
-# @app.route('/', methods=['GET'])
+# @app.route('/task3/', methods=['GET'])
 # def task3():
-#     """
-#     docstring
-#     """
-#     pass
+
+#     return 'a'
 
 app.run()
