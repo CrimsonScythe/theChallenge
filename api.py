@@ -10,7 +10,8 @@ from flask import request
 import re
 import datetime
 
-PASSWORD = 'root'
+PASSWORD = 'mongosecret'
+USERNAME = 'mongo_ro'
 DBNAME = 'challenge'
 
 app = flask.Flask(__name__)
@@ -19,7 +20,7 @@ app.config["DEBUG"] = True
 @app.route('/task1/', methods=['GET'])
 def task1():
 
-    client = pymongo.MongoClient(f'mongodb+srv://root:{PASSWORD}@cluster0.ursc6.mongodb.net/{DBNAME}?retryWrites=true&w=majority')
+    client = pymongo.MongoClient(f'mongodb+srv://{USERNAME}:{PASSWORD}@cluster0.ursc6.mongodb.net/{DBNAME}?retryWrites=true&w=majority')
     db = client.challenge
     
     week = request.args.get('week', '')
@@ -82,7 +83,7 @@ def task1():
 @app.route('/task2/', methods=['GET'])
 def task2():
     
-    client = pymongo.MongoClient(f'mongodb+srv://root:{PASSWORD}@cluster0.ursc6.mongodb.net/{DBNAME}?retryWrites=true&w=majority')
+    client = pymongo.MongoClient(f'mongodb+srv://{USERNAME}:{PASSWORD}@cluster0.ursc6.mongodb.net/{DBNAME}?retryWrites=true&w=majority')
     db = client.challenge
     
     week = request.args.get('week', '')
@@ -119,7 +120,7 @@ def task3():
 
     machine_id = request.args.get('machine_id', '')
 
-    connection = pg.connect(host='database-1.cecyhqe14qec.us-east-2.rds.amazonaws.com', port=5432, dbname='challenge', user='postgres', password='rootroot')
+    connection = pg.connect(host='database-1.cecyhqe14qec.us-east-2.rds.amazonaws.com', port=5432, dbname='challenge', user='postgres_ro', password='secret')
     cur = connection.cursor()
 
     sensor_query = f''' SELECT (sensors.sensor_id, sensors.sensor_name) FROM sensors WHERE sensors.machine_id='{machine_id}'; '''
