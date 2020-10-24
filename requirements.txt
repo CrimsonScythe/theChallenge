@@ -1,0 +1,6 @@
+dnspython
+psycopg2-binary
+pandas
+pymongo
+Flask
+pymongo[srv]

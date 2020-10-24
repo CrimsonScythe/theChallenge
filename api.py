@@ -37,9 +37,14 @@ def task1():
 
     '''filter out bad input by making sure that start date is start of week and end date end of week'''
     
-    if (day1 in [1, 8, 15, 21] and day2-day1==7)==False: 
+    if (day1 in [1, 8, 15, 21])==False: 
         return 'Error. day of first week must be a starting week (one of 1, 8, 15, 21)'
 
+    if (day2-day1!=7):
+        return 'Error. the given date range must be a week (7 days)'
+
+    if (day1==21):
+        return 'Error. no data for week 5'
     
     sensor_id = ParserHelper.parseSensor(sensor_id=sensor_id)
     if sensor_id==None:
@@ -114,7 +119,7 @@ def task3():
 
     machine_id = request.args.get('machine_id', '')
 
-    connection = pg.connect(dbname='challenge', user='postgres', password='root')
+    connection = pg.connect(host='database-1.cecyhqe14qec.us-east-2.rds.amazonaws.com', port=5432, dbname='challenge', user='postgres', password='rootroot')
     cur = connection.cursor()
 
     sensor_query = f''' SELECT (sensors.sensor_id, sensors.sensor_name) FROM sensors WHERE sensors.machine_id='{machine_id}'; '''
@@ -154,4 +159,4 @@ def task3():
 
     return dic
 
-app.run()
+app.run(host='0.0.0.0', port=5000)

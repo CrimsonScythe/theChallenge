@@ -24,7 +24,7 @@ def init_tables():
         '''
         create new connection to connect to newly created db
         '''
-        connection = pg.connect(dbname='challenge', user='postgres', password='root')
+        connection = pg.connect(host='database-1.cecyhqe14qec.us-east-2.rds.amazonaws.com', port=5432, dbname='challenge', user='postgres', password='rootroot')
         cur = connection.cursor()
         
         tables = (
@@ -61,7 +61,7 @@ def pop_db():
         '''
         create new connection to connect to newly created db
         '''
-        connection = pg.connect(dbname='challenge', user='postgres', password='root')
+        connection = pg.connect(host='database-1.cecyhqe14qec.us-east-2.rds.amazonaws.com', port=5432, dbname='challenge', user='postgres', password='rootroot')
         cur = connection.cursor()
 
         insert_sensors = ''' INSERT INTO sensors(machine_id, sensor_id, sensor_name) VALUES(%s, %s, %s) '''
@@ -77,11 +77,11 @@ def pop_db():
 '''
 Set up initial connection to db server
 '''
-connection = pg.connect(user='postgres', password='root')
+connection = pg.connect(host='database-1.cecyhqe14qec.us-east-2.rds.amazonaws.com', port=5432, user='postgres', password='rootroot')
 connection.autocommit=True
 
-# init_db()
-# init_tables()
+init_db()
+init_tables()
 
 sensors_df = pd.read_json('Sensors.json')
 machines_df = pd.read_json('machines.json')
