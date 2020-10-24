@@ -117,18 +117,21 @@ def task3():
     connection = pg.connect(dbname='challenge', user='postgres', password='root')
     cur = connection.cursor()
 
-    sensor_query = ''' SELECT (sensors.sensor_id, sensors.sensor_name) FROM sensors WHERE sensors.machine_id='DEC1'; '''
+    sensor_query = f''' SELECT (sensors.sensor_id, sensors.sensor_name) FROM sensors WHERE sensors.machine_id='{machine_id}'; '''
     cur.execute(sensor_query)
     sensor_info = cur
 
     cur = connection.cursor()
 
-    machine_query = ''' SELECT (machines.status, machines.location_id) FROM machines WHERE machines.machine_id='DEC1'; '''
+    machine_query = f''' SELECT (machines.status, machines.location_id) FROM machines WHERE machines.machine_id='{machine_id}'; '''
     cur.execute(machine_query)
-    machine_info = cur
+    machine_info = cur      
 
     machine_info = machine_info.fetchall()
     sensor_info = sensor_info.fetchall() 
+
+    if len(machine_info)==0:
+        return 'Error. No machines found for the given ID.'
 
     machine_info = re.sub(r'\(*\)*', '', machine_info[0][0])
 
