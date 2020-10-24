@@ -45,6 +45,8 @@ def task1():
     if sensor_id==None:
         return 'Error. sensor_id not valid'
 
+    print(sensor_id)
+
     pipeline = [
         
         {'$match': {'Date time': {'$gte' : week1, '$lte' : week2} } },
@@ -59,13 +61,16 @@ def task1():
         
     ]
 
-    week_i_avg = db.sensors.aggregate(pipeline=pipeline)
-    week_i1_avg = db.sensors.aggregate(pipeline=pipeline1)
+    week_i_avg = list(db.sensors.aggregate(pipeline=pipeline))
+    week_i1_avg = list(db.sensors.aggregate(pipeline=pipeline1))
 
-    if list(week_i_avg)[0]['average']==None or list(week_i1_avg)[0]['average']==None:
+    
+    if (week_i_avg)[0]['average']==None or (week_i1_avg)[0]['average']==None:
         return 'Error. No entries found for the week and sensor_id'
 
-    avg_diff = list(week_i1_avg)[0]['average'] - list(week_i_avg)[0]['average']
+  
+    avg_diff = (week_i1_avg)[0]['average'] - (week_i_avg)[0]['average']
+    
 
     return {'moving average difference':avg_diff}
  
@@ -96,16 +101,54 @@ def task2():
         
     ]
 
-    res = db.sensors.aggregate(pipeline=pipeline)
+    res = list(db.sensors.aggregate(pipeline=pipeline))
     
-    if (list(res)[0]['average']) == None:
+    if (res)[0]['average'] == None:
         return 'Error. No entries found for the week and sensor_id'
 
-    return {'moving average':list(res)[0]['average']}
+    return {'moving average':res[0]['average']}
 
-# @app.route('/task3/', methods=['GET'])
-# def task3():
+@app.route('/task3/', methods=['GET'])
+def task3():
 
-#     return 'a'
+
+    machine_id = request.args.get('machine_id', '')
+
+    connection = pg.connect(dbname='challenge', user='postgres', password='root')
+    cur = connection.cursor()
+
+    sensor_query = ''' SELECT (sensors.sensor_id, sensors.sensor_name) FROM sensors WHERE sensors.machine_id='DEC1'; '''
+    cur.execute(sensor_query)
+    sensor_info = cur
+
+    cur = connection.cursor()
+
+    machine_query = ''' SELECT (machines.status, machines.location_id) FROM machines WHERE machines.machine_id='DEC1'; '''
+    cur.execute(machine_query)
+    machine_info = cur
+
+    machine_info = machine_info.fetchall()
+    sensor_info = sensor_info.fetchall() 
+
+    machine_info = re.sub(r'\(*\)*', '', machine_info[0][0])
+
+    dic = {}
+
+    lst = []
+    
+    for i in range(len(sensor_info)):
+        print(sensor_info[i][0])
+        sensor_temp = re.sub(r'\(*\)*', '', sensor_info[i][0])
+        print(sensor_temp)
+        lst.append([sensor_temp.split(',')[0], sensor_temp.split(',')[1].replace('"', '')]) 
+
+    dic['machine_id'] = machine_id
+    dic['sensors'] = lst
+    dic['status'] = machine_info.split(',')[0]
+    dic['location'] = machine_info.split(',')[1]
+
+    cur.close()
+
+    return dic
 
 app.run()
