@@ -1,7 +1,13 @@
 ﻿# theChallenge
  
- To run the solution, please run the bash script: `docker_script.sh`, this builds the image and runs the container. 
- Verify that the container is running and then run the bash script: `api_tests.sh`. This is a bunch of curl get requests to the api endpoints to ensure that the api works. There are 12 tests in total. The api also handles the case where the sensor_id is not valid, or the week input format is malformed.
+ ## Running
+ 
+ To run the solution, please run the bash script: `docker_script.sh`, this builds the image and runs the container. If running on Linux make sure you can run docker without `sudo`. Alternatively you can also run the commands:   
+`docker image build --no-cache -t challenge_api .` and `docker run -p 5000:5000 -d challenge_api`
+
+## Testing
+
+ Verify that the container is running and then run the bash script: `api_tests.sh`. This is a bunch of curl get requests to the api endpoints to ensure that the api works. There are 12 tests in total. In addition to the example inputs provided in the docx file, there are also tests for malformed week input format and the case where the sensor_id is not valid.
  
  ## API design
  
