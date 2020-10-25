@@ -1,6 +1,14 @@
 import psycopg2 as pg
 import pandas as pd
 import psycopg2.extras as pge
+
+
+'''
+Creates Postgres database and tables.
+Populates the database with data from the json files.
+'''
+
+
 '''
 Creates database
 '''

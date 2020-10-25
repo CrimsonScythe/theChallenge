@@ -6,7 +6,7 @@ import datetime
 PASSWORD = 'root'
 
 '''
-load pickle file
+Populates mongo database with data from  csv file. 
 '''
 
 with open('sensor_values.pickle', 'rb') as file:

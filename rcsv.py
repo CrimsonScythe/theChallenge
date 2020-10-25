@@ -5,8 +5,9 @@ import pickle
 FILENAME = 'Sensors\' values.csv'
 
 '''
-Fix the formatting on the csv
+Fixes the formatting on the csv and stores the results as a pickle file.
 '''
+
 df = pd.read_csv(FILENAME, sep=';')
 df = df.replace(',', '', regex=True)
 df.columns = df.columns.str.replace(',', '')
